@@ -1,0 +1,6 @@
+experiment_name: ecommerce_esp32
+transaction_dataset: ecommerce
+csi_source: esp32
+csi_expected_users: 81
+csi_subcarriers_mode: raw_52
+target_label: attack_event

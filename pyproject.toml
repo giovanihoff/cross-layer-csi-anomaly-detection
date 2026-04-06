@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "csi-payment-attestation"
+version = "0.1.0"
+description = "Cross-layer physical presence attestation with transactional data and Wi-Fi CSI."
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [
+  { name = "Giovani Hoff da Costa" }
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]

@@ -1,0 +1,6 @@
+experiment_name: ieee_cis_raspberrypi
+transaction_dataset: ieee_cis
+csi_source: raspberry_pi
+csi_expected_users: 72
+csi_subcarriers_mode: data_only_108
+target_label: attack_event
