@@ -1,16 +1,31 @@
 # Cross-Layer CSI Anomaly Detection
 
-Projeto reestruturado a partir do notebook de referencia **Cross-Layer Physical Presence Attestation via Wi-Fi CSI for In-Person Payment Anomaly Detection**. A base agora organiza explicitamente as duas camadas do estudo:
+This repository organizes the research artifacts for a cross-layer fraud detection workflow that combines transactional data with Wi-Fi Channel State Information (CSI) as contextual evidence of physical presence.
 
-- `tabular`: bootstrap e preparo dos datasets transacionais.
-- `csi`: aquisicao, conversao, filtragem, suavizacao e harmonizacao dos traces de Wi-Fi CSI.
+## Purpose
 
-## O que mudou
+The project evaluates whether CSI can provide additional signal for anomaly detection in in-person payment scenarios by fusing transactional datasets with CSI measurements collected from heterogeneous hardware platforms.
 
-- O ponto de entrada publico passou a ser `src/cross_layer_csi/`.
-- O bootstrap tabular anterior foi preservado e encapsulado como a camada `cross_layer_csi.tabular`.
-- As classes centrais de preprocessamento CSI foram extraidas do notebook para modulos Python reutilizaveis.
-- As etapas experimentais do notebook foram mapeadas em `cross_layer_csi.experiments`.
+## Scope
+
+The repository is structured to support:
+
+- transactional baselines for IEEE-CIS, Sparkov, and Ecommerce datasets;
+- CSI ingestion and preprocessing for Raspberry Pi/Nexmon and ESP32 acquisitions;
+- controlled transaction-to-CSI association and attack-event simulation;
+- anomaly detection, robustness analysis, and experiment reporting;
+- reproducible experiment configuration for GitHub-based collaboration.
+
+## Datasets and scenarios
+
+Planned experiment tracks include:
+
+- IEEE-CIS + Raspberry Pi CSI
+- IEEE-CIS + ESP32 CSI
+- Sparkov + Raspberry Pi CSI
+- Sparkov + ESP32 CSI
+- Ecommerce + Raspberry Pi CSI
+- Ecommerce + ESP32 CSI
 
 ## Estrutura
 
@@ -36,3 +51,20 @@ python -m cross_layer_csi.cli csi-preprocess --no-plots
 ## Compatibilidade
 
 O pacote antigo `multidataset_fraud` foi mantido no repositório para preservar a logica tabular ja validada durante a migracao. O namespace recomendado para novos usos e `cross_layer_csi`.
+
+## Repository notes
+
+- Raw datasets are not versioned in Git.
+- Secrets such as Kaggle credentials must be provided through environment variables or local `.env` files.
+- Generated outputs should be written to the `reports/` and `artifacts/` directories.
+
+## Quick start
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env
+```
+
+Then edit the dataset paths and run the experiment entry points under `src/csi_payment_attestation/pipelines/`.
