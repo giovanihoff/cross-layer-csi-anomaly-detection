@@ -1,44 +1,19 @@
-# Python
 __pycache__/
 *.py[cod]
-*.pyo
-*.pyd
-*.so
+.pytest_cache/
 .venv/
-venv/
+.env.kaggle
 
-# Jupyter
-.ipynb_checkpoints/
-
-# Environment and secrets
-.env
-.env.*
-!.env.example
-kaggle.json
-*.pem
-*.key
-
-# Data and outputs
 data/raw/*
-data/interim/*
-data/processed/*
-data/external/*
 !data/raw/.gitkeep
+data/interim/*
 !data/interim/.gitkeep
+data/processed/*
 !data/processed/.gitkeep
-!data/external/.gitkeep
+data/csi/*
+!data/csi/.gitkeep
 
-reports/figures/*
-reports/tables/*
-reports/logs/*
-artifacts/*
-!reports/figures/.gitkeep
-!reports/tables/.gitkeep
-!reports/logs/.gitkeep
-!artifacts/.gitkeep
+reports/generated/*
+!reports/generated/.gitkeep
 
-# IDEs and OS
-.vscode/
-.idea/
-.DS_Store
-Thumbs.db
+*.egg-info/

@@ -3,14 +3,27 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "csi-payment-attestation"
-version = "0.1.0"
-description = "Cross-layer physical presence attestation with transactional data and Wi-Fi CSI."
-readme = "README.md"
-requires-python = ">=3.10"
-authors = [
-  { name = "Giovani Hoff da Costa" }
+name = "cross-layer-csi-anomaly-detection"
+version = "0.2.0"
+description = "Projeto cross-layer para deteccao de anomalias em pagamentos presenciais com dados transacionais e Wi-Fi CSI."
+requires-python = ">=3.11"
+dependencies = [
+  "gdown>=5.2",
+  "kaggle>=1.6.17",
+  "matplotlib>=3.8",
+  "numpy>=1.26",
+  "pandas>=2.2",
+  "pyarrow>=15.0",
+  "python-dotenv>=1.0",
+  "requests>=2.32",
+  "scipy>=1.13",
 ]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[project.scripts]
+cross-layer-csi = "cross_layer_csi.cli:main"
 
 [tool.setuptools]
 package-dir = {"" = "src"}

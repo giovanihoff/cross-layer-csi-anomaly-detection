@@ -1,6 +1,0 @@
-experiment_name: sparkov_esp32
-transaction_dataset: sparkov
-csi_source: esp32
-csi_expected_users: 81
-csi_subcarriers_mode: raw_52
-target_label: attack_event
