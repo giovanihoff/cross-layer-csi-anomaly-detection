@@ -4,17 +4,18 @@ from multidataset_fraud.config import PATHS as LEGACY_PATHS
 
 from ..core.paths import PROJECT_PATHS
 
-
 TABULAR_DATASETS = {
     "ieee_cis": "ieee-fraud-detection",
     "sparkov": "kartik2112/fraud-detection",
     "ecommerce": "vbinh002/fraud-ecommerce",
+    "caixabank": "computingvictor/transactions-fraud-datasets",
 }
 
 TARGET_COLUMNS = {
     "ieee_cis": "isFraud",
     "sparkov": "is_fraud",
     "ecommerce": "class",
+    "caixabank": "is_fraud",
 }
 
 TABULAR_RAW_DIR = PROJECT_PATHS.data_raw

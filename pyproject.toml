@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cross-layer-csi-anomaly-detection"
-version = "0.2.0"
-description = "Projeto cross-layer para deteccao de anomalias em pagamentos presenciais com dados transacionais e Wi-Fi CSI."
+version = "0.3.0"
+description = "Controlled cross-layer physical-presence emulation for payment anomaly detection with Wi-Fi CSI."
 requires-python = ">=3.11"
 dependencies = [
   "gdown>=5.2",
@@ -17,10 +17,12 @@ dependencies = [
   "python-dotenv>=1.0",
   "requests>=2.32",
   "scipy>=1.13",
+  "scikit-learn>=1.6",
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8.0"]
+dev = ["pytest>=8.0", "ruff>=0.12"]
+two-phase = ["lightgbm>=4.6", "xgboost>=3.4"]
 
 [project.scripts]
 cross-layer-csi = "cross_layer_csi.cli:main"
@@ -30,3 +32,10 @@ package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"

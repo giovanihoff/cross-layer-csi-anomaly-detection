@@ -1,0 +1,3 @@
+Supervised_Model,S,Dataset_Count,TP_Tx,TP_TxCSI,Delta_TP,FP_Tx,FP_TxCSI,Delta_FP,FP_Reduction_pct,Pareto_Calibration_Count,Pareto_Holdout_Count
+LightGBM,25,4,183,231,48,2384,665,-1719,72.105705,4,4
+XGBoost,25,4,182,236,54,2053,818,-1235,60.155869,4,4

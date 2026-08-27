@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from .models import DatasetResearch
 
-
 RESEARCH_NOTES: dict[str, DatasetResearch] = {
     "ieee_cis": DatasetResearch(
         dataset_key="ieee_cis",
@@ -103,9 +102,30 @@ RESEARCH_NOTES: dict[str, DatasetResearch] = {
             },
         ),
     ),
+    "caixabank": DatasetResearch(
+        dataset_key="caixabank",
+        display_name="CaixaBank Transactions Fraud",
+        uid_choice="uid = client_id + card_id; event_id = id",
+        uid_rationale=(
+            "The v120.3 controlled protocol uses the native client/card relationship as the "
+            "recurring transaction identity. A deterministic 50,000-row cohort is selected to "
+            "retain repeated users and approximately 500 labelled frauds without consulting "
+            "held-out outcomes during the later Tx-to-CSI mapping."
+        ),
+        training_prep=(
+            "The raw transaction and label files are joined by id, a deterministic client cohort "
+            "is selected, monetary fields are parsed, date fields are decomposed, and raw account "
+            "identifiers are removed after the analytical UID is created."
+        ),
+        references=(
+            {
+                "label": "Kaggle Dataset - computingvictor/transactions-fraud-datasets",
+                "url": "https://www.kaggle.com/datasets/computingvictor/transactions-fraud-datasets",
+            },
+        ),
+    ),
 }
 
 
 def get_research(dataset_key: str) -> DatasetResearch:
     return RESEARCH_NOTES[dataset_key]
-

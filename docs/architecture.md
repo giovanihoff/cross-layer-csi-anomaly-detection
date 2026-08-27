@@ -1,40 +1,35 @@
-# Arquitetura Reestruturada
+# Architecture and notebook traceability
 
-## Visao geral
+The reusable package follows the 68-cell v120.3 camera-ready notebook while separating data
+bootstrap, CSI processing, controlled fusion, evaluation, and result reporting.
 
-O notebook anexo mistura tres responsabilidades no mesmo fluxo:
+| Notebook cells | Responsibility | Package location |
+|---|---|---|
+| 2–13 | Four transaction datasets and X/y artifacts | `cross_layer_csi.tabular` |
+| 14–27 | CSI acquisition, conversion, filtering, smoothing, harmonization | `cross_layer_csi.csi` |
+| 28–34 | 432-feature segmentation and purged split | `cross_layer_csi.csi.segmentation` |
+| 35–40 | Label-free identity mapping, Tx/CSI pairing, impostor injection, audits | `cross_layer_csi.experiments.identity`, `fusion`, `audits` |
+| 41–43 | Claimed-user profiles, paired one-class evaluation, feature guard | `cross_layer_csi.experiments.consistency`, `evaluation`, `audits` |
+| 44–57 | Pairing, selection, segment/prevalence/profile sensitivity, evaluation seeds, controls | `cross_layer_csi.experiments.reporting` and versioned result tables |
+| 58–61 | Complementary two-phase LightGBM/XGBoost campaign | `cross_layer_csi.experiments.two_phase`; canonical output in `reports/v120_3` |
+| 62–65 | Explicit seed roles and donor-policy stress test | `config`, `pipeline`, `reporting` |
+| 66–67 | Environment and interpretation guard | `reports/v120_3` and `docs/protocol_v120_3.md` |
 
-- bootstrap tabular de dados financeiros;
-- preprocessamento multi-origem de Wi-Fi CSI;
-- campanhas experimentais Tx-only vs Tx+CSI.
+## Runtime flow
 
-A reestruturacao separa essas responsabilidades em pacotes explicitos.
+1. Tabular handlers create stable train/test transaction artifacts and analytical UIDs.
+2. CSI handlers create harmonized 108-subcarrier amplitude frames.
+3. `build_segmented_datasets` creates 432-feature segments and applies the anti-leak CSI split.
+4. `build_label_free_user_map` selects recurring transaction identities without fraud labels.
+5. `ControlledExperimentRunner.construct` builds split-coherent pairs and injects unique test-only
+   CSI impostors using the explicit merge/injection seeds.
+6. `ControlledExperimentRunner.evaluate` executes the protocol, reuse, and feature audits before
+   fitting any one-class model.
+7. Calibration chooses a threshold; holdout produces the reported paired metrics.
+8. `donor_policy_stress_test` first enforces exact random replay, then evaluates `hard_nearest`.
 
-## Mapeamento notebook -> codigo
+## Compatibility boundary
 
-- Celulas 1-12: `cross_layer_csi.tabular` e `cross_layer_csi.pipelines.tabular`
-- Celulas 13-26: `cross_layer_csi.csi` e `cross_layer_csi.pipelines.csi`
-- Celulas 27-53: `cross_layer_csi.experiments.registry`
-
-## Pastas principais
-
-- `src/cross_layer_csi/core`
-  Centraliza `ProjectPaths` e os caminhos usados pelas duas camadas do projeto.
-
-- `src/cross_layer_csi/tabular`
-  Mantem o bootstrap transacional atual, agora sob um namespace coerente com o estudo cross-layer.
-
-- `src/cross_layer_csi/csi`
-  Contem as classes extraidas do notebook para conversao de amplitudes, filtragem de subportadoras, suavizacao temporal e harmonizacao de granularidade espectral.
-
-- `src/cross_layer_csi/pipelines`
-  Reune os fluxos completos de execucao para tabular e CSI.
-
-- `src/cross_layer_csi/experiments`
-  Registra as campanhas experimentais existentes no notebook, preparando o terreno para extracao posterior do codigo analitico.
-
-## Convencoes de dados
-
-- `data/raw/` e `data/processed/` continuam dedicados ao fluxo tabular.
-- `data/csi/` passa a concentrar fontes CSI, artefatos convertidos e saidas harmonizadas.
-- `reports/generated/` agrega tanto os relatórios tabulares quanto o resumo `csi_harmonization_summary.csv`.
+`multidataset_fraud` remains in the tree as the original tabular bootstrap implementation. New
+cross-layer work should import `cross_layer_csi`. Notebook-compatible function aliases are kept in
+the experiment modules only where they help trace a published output back to its original cell.
