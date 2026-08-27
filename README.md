@@ -1,70 +1,106 @@
 # Cross-Layer CSI Anomaly Detection
 
-This repository organizes the research artifacts for a cross-layer fraud detection workflow that combines transactional data with Wi-Fi Channel State Information (CSI) as contextual evidence of physical presence.
+Reproducible research code for controlled cross-layer physical-presence emulation in in-person
+payment anomaly detection. The project compares the same one-class detector under two paired
+feature views:
 
-## Purpose
+- **Tx-only:** transactional attributes;
+- **Tx+CSI:** the same attributes plus 432 raw Wi-Fi CSI segment features and 13 claimed-user
+  physical-coherence features.
 
-The project evaluates whether CSI can provide additional signal for anomaly detection in in-person payment scenarios by fusing transactional datasets with CSI measurements collected from heterogeneous hardware platforms.
+The current implementation tracks the fully executed **v120.3 camera-ready protocol**.
 
-## Scope
+## Experimental scope
 
-The repository is structured to support:
+The transaction layer covers IEEE-CIS, Sparkov, E-commerce Fraud, and the controlled 50k-row
+CAIXABANK subset. The CSI layer combines ITA_CSI (108 native subcarriers) and PMC_CSI (52 native
+subcarriers, linearly interpolated to a normalized 108-position grid).
 
-- transactional baselines for IEEE-CIS, Sparkov, and Ecommerce datasets;
-- CSI ingestion and preprocessing for Raspberry Pi/Nexmon and ESP32 acquisitions;
-- controlled transaction-to-CSI association and attack-event simulation;
-- anomaly detection, robustness analysis, and experiment reporting;
-- reproducible experiment configuration for GitHub-based collaboration.
+Only one attack context is evaluated: a fraud-labelled held-out transaction receives an
+unmodified real CSI segment from a different held-out user. Donors are unique, reserved, and
+excluded from calibration and holdout evaluation. No remote-mismatch context or artificially
+perturbed attack sample belongs to the primary protocol.
 
-## Datasets and scenarios
+## v120.3 safeguards
 
-Planned experiment tracks include:
+- CSI `train`/`val` pairs only with original transaction train rows; CSI `test` only with original
+  transaction test rows.
+- Calibration and holdout are split by `tx_row_id`, with no group overlap.
+- One-class models train only on nominal rows.
+- CSI user profiles fit only nominal train/validation rows.
+- Tx-only receives zero raw or derived CSI features.
+- Merge (`42`), injection (`merge + 123`), and evaluation (`33`) seed roles are explicit.
+- The L9C random branch must reproduce the main TP/FP counts exactly before the exploratory
+  `hard_nearest` stress test is accepted.
 
-- IEEE-CIS + Raspberry Pi CSI
-- IEEE-CIS + ESP32 CSI
-- Sparkov + Raspberry Pi CSI
-- Sparkov + ESP32 CSI
-- Ecommerce + Raspberry Pi CSI
-- Ecommerce + ESP32 CSI
+## Primary result
 
-## Estrutura
+For the selected `S=25` scenarios:
 
-- `src/cross_layer_csi/core/`: caminhos e infraestrutura comum do projeto.
-- `src/cross_layer_csi/tabular/`: pipeline transacional e adaptadores para os datasets IEEE-CIS, Sparkov e E-commerce.
-- `src/cross_layer_csi/csi/`: download, analise e preprocessamento CSI.
-- `src/cross_layer_csi/pipelines/`: orquestracao de alto nivel para tabular e CSI.
-- `src/cross_layer_csi/experiments/`: catalogo das etapas experimentais derivadas do notebook.
-- `data/raw/`: dados tabulares brutos.
-- `data/processed/`: artefatos tabulares preparados.
-- `data/csi/`: materias-primas e artefatos intermediarios de CSI.
-- `reports/generated/`: sumarios tabulares e relatorios do preprocessamento CSI.
-- `docs/architecture.md`: mapa entre o notebook anexo e a estrutura atual do pacote.
+| Dataset | Detector | TP Tx→Tx+CSI | FP Tx→Tx+CSI |
+|---|---|---:|---:|
+| CAIXABANK | OneClassSVM RBF | 6→6 | 82→16 |
+| ECOMMERCE | OneClassSVM RBF | 88→122 | 1,420→185 |
+| IEEE-CIS | LOF novelty | 57→88 | 909→437 |
+| SPARKOV | OneClassSVM RBF | 21→30 | 837→181 |
+| **Total** | — | **172→246** | **3,248→819** |
 
-## Como executar
+This is a 74.78% reduction in false positives with a Pareto improvement in all four controlled
+dataset evaluations. Versioned result tables and interpretation limits are under
+[`reports/v120_3/`](reports/v120_3/README.md).
 
-```powershell
-python -m pip install -e .[dev]
-python -m cross_layer_csi.cli tabular-bootstrap --datasets all
-python -m cross_layer_csi.cli csi-preprocess --no-plots
-```
+## Project structure
 
-## Compatibilidade
+- `src/cross_layer_csi/tabular/`: dataset bootstrap, including CAIXABANK.
+- `src/cross_layer_csi/csi/`: conversion, filtering, smoothing, 52→108 harmonization,
+  segmentation, and anti-leak splitting.
+- `src/cross_layer_csi/experiments/`: identity mapping, controlled fusion, CSI consistency
+  profiles, paired one-class evaluation, audits, seed guards, and reporting.
+- `reports/v120_3/`: canonical compact results extracted from the executed notebook.
+- `notebooks/01_bootstrap_datasets.ipynb`: dataset bootstrap helper.
+- `tests/`: synthetic invariants for processing, donor reservation, leakage prevention, feature
+  separation, seed roles, and result replay.
 
-O pacote antigo `multidataset_fraud` foi mantido no repositório para preservar a logica tabular ja validada durante a migracao. O namespace recomendado para novos usos e `cross_layer_csi`.
+See [`docs/architecture.md`](docs/architecture.md) and
+[`docs/protocol_v120_3.md`](docs/protocol_v120_3.md) for the notebook-to-package map and the exact
+experimental flow.
 
-## Repository notes
-
-- Raw datasets are not versioned in Git.
-- Secrets such as Kaggle credentials must be provided through environment variables or local `.env` files.
-- Generated outputs should be written to the `reports/` and `artifacts/` directories.
-
-## Quick start
+## Installation and checks
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt
-cp .env.example .env
+python -m pip install -e ".[dev]"
+cp .env.example .env.kaggle
+python -m pytest -q
 ```
 
-Then edit the dataset paths and run the experiment entry points under `src/csi_payment_attestation/pipelines/`.
+Optional two-phase dependencies:
+
+```bash
+python -m pip install -e ".[two-phase]"
+```
+
+Bootstrap and preprocess data:
+
+```bash
+cross-layer-csi tabular-bootstrap --datasets all
+cross-layer-csi csi-preprocess --no-plots
+cross-layer-csi protocol-manifest --segment-size 25
+```
+
+The reusable controlled experiment entry point is
+`cross_layer_csi.experiments.ControlledExperimentRunner`. It accepts prepared transaction frames,
+segmented CSI frames, and label-free Tx-to-CSI user maps, then runs the hard audits before fitting
+any detector.
+
+## Data, secrets, and interpretation
+
+Raw data and generated artifacts are intentionally not versioned. Supply Kaggle credentials via
+environment variables, the ignored local `.env.kaggle` file, or the standard Kaggle configuration file; never add
+credentials to source code or notebooks.
+
+The implementation is a controlled cross-domain integration, not a synchronized real-world
+Tx/CSI dataset. The detectors are one-class with label-informed calibration. The multi-seed table
+measures evaluation-seed stability on a fixed constructed dataset, and `shuffled_csi`/`noisy_csi`
+are negative controls rather than attack contexts.
